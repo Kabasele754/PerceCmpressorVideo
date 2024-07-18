@@ -36,6 +36,27 @@ $(function() {
             if (response.status === 'success') {
                 checkCompressionProgress(response.video_id);
             }
+            else{
+                $(function() {
+    var Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+
+
+
+    $('.swalDefaultError').click(function() {
+      Toast.fire({
+        icon: 'error',
+        title: 'Error'
+      })
+    });
+
+
+  });
+            }
         }
     });
 });
@@ -66,7 +87,6 @@ function checkCompressionProgress(videoId) {
                             icon: 'success',
                             title: 'Compression vidéo terminée !'
                           })
-
 
 
                       });
