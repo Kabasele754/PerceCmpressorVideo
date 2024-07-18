@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Liste des Vidéos</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Titre</th>
+            <th>Date d'upload</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for video in videos %}
+        <tr>
+            <td>{{ video.title }}</td>
+            <td>{{ video.created_at|date:"F d, Y" }}</td>
+            <td>
+                <a href="{{ video.original_file.url }}" class="btn btn-primary btn-sm">Télécharger Original</a>
+                {% if video.compressed_file %}
+                <a href="#" class="btn btn-success btn-sm download-btn" data-video-id="{{ video.id }}">Télécharger Compressé</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+$('.download-btn').click(function(e) {
+    e.preventDefault();
+    var videoId = $(this).data('video-id');
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/stream-video/' + videoId + '/', true);
+    xhr.responseType = 'blob';
+
+    xhr.onprogress = function(e) {
+        if (e.lengthComputable) {
+            var percentComplete = (e.loaded / e.total) * 100;
+            console.log('Téléchargement : ' + percentComplete + '%');
+        }
+    };
+
+    xhr.onload = function(e) {
+        if (this.status == 200) {
+            var blob = new Blob([this.response], {type: 'video/mp4'});
+            var downloadUrl = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = downloadUrl;
+            a.download = "video_compresse.mp4";
+            document.body.appendChild(a);
+            a.click();
+        }
+    };
+
+    xhr.send();
+});
+</script>
+{% endblock %}

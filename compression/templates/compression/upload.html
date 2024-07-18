@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Video</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('form').on('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData($(this)[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: '/upload/',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $('#compressed-video').attr('src', response.compressed_file);
+                    $('#download-link').attr('href', response.compressed_file);
+                    $('#download-link').show();
+                    checkCompressionStatus();
+                },
+                error: function(xhr, status, error) {
+                    alert('Error uploading file');
+                }
+            });
+        });
+
+        function checkCompressionStatus() {
+            var checkInterval = setInterval(function() {
+                $.ajax({
+                    type: 'GET',
+                    url: '/check_compression_status/',
+                    success: function(response) {
+                        if (response.status === 'complete') {
+                            clearInterval(checkInterval);
+                            $('#compression-status').text('Compression complete!');
+                        } else {
+                            $('#compression-status').text('Compression in progress...');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        clearInterval(checkInterval);
+                        alert('Error checking compression status');
+                    }
+                });
+            }, 5000);  // Check every 5 seconds
+        }
+    });
+    </script>
+</head>
+<body>
+    <h2>Upload Video for Compression</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="video_file" accept="video/*">
+        <input type="text" name="title" placeholder="Title">
+        <button type="submit">Upload and Compress</button>
+    </form>
+
+    <div id="compression-status"></div>
+    <video id="compressed-video" controls style="display: none;"></video>
+    <a id="download-link" href="#" style="display: none;" download>Download Compressed Video</a>
+</body>
+</html>

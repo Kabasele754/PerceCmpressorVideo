@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Upload Vidéo</h2>
+<form id="upload-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary">Upload et Compression</button>
+</form>
+
+<div id="progress-wrapper" style="display: none;">
+    <h3>Progression de l'upload</h3>
+    <div class="progress">
+        <div id="upload-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+    </div>
+    
+    <h3>Progression de la compression</h3>
+    <div class="progress">
+        <div id="compression-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('#upload-form').ajaxForm({
+        beforeSend: function() {
+            $('#progress-wrapper').show();
+            $('#upload-progress').width('0%');
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+            $('#upload-progress').width(percentComplete + '%');
+            $('#upload-progress').html(percentComplete + '%');
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                checkCompressionProgress(response.video_id);
+            }
+        }
+    });
+});
+
+function checkCompressionProgress(videoId) {
+    $.ajax({
+        url: '/compression-progress/' + videoId + '/',
+        success: function(data) {
+            $('#compression-progress').width(data.progress + '%');
+            $('#compression-progress').html(data.progress + '%');
+            
+            if (data.status !== 'completed') {
+                setTimeout(function() {
+                    checkCompressionProgress(videoId);
+                }, 2000);
+            } else {
+
+             $(function() {
+                        var Toast = Swal.mixin({
+                          toast: true,
+                          position: 'top-end',
+                          showConfirmButton: false,
+                          timer: 15000
+                        });
+
+
+                          Toast.fire({
+                            icon: 'success',
+                            title: 'Compression vidéo terminée !'
+                          })
+
+
+
+                      });
+
+
+                // alert('Compression vidéo terminée !');
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

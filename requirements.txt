@@ -1,0 +1,4 @@
+django
+ffmpeg-python
+django-crispy-forms
+crispy-bootstrap5
